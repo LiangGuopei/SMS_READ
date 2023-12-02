@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             try {
+                NUMBERS.clear();
+                CALLNUMBERS.clear();
                 JSONObject jsonObject = new JSONObject(sb.toString());
                 JSONArray numbers = jsonObject.getJSONArray("numbers");
                 for (int i = 0; i < numbers.length(); i++) {
