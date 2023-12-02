@@ -11,9 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:layout_marginStart="1dp"
+        android:layout_marginTop="100dp"
         android:text="关闭铃声"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rmbtu1" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -49,44 +50,17 @@
         android:id="@+id/rmbtu1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
         android:text="@string/rm_btu"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/addbtu1" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rmbtu1">
-
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="电话：" />
-
-        <Spinner
-            android:id="@+id/telephonespr"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:spinnerMode="dialog" />
-    </LinearLayout>
-
     <Button
-        android:id="@+id/addbtu2"
-        android:layout_width="match_parent"
+        android:id="@+id/Licensebtu"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/add_btu"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
-
-    <Button
-        android:id="@+id/rmbtu2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/rm_btu"
-        app:layout_constraintTop_toBottomOf="@+id/addbtu2" />
+        android:text="License"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

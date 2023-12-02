@@ -57,14 +57,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate: !");
         INSTANCE = this;
-        {
-            AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("License")
-                    .setMessage(getResources().getText(R.string.mit_))
-                    .setIcon(R.drawable.ic_launcher_background)
-                    .create();
-            dialog.show();
-        }
         { //读取配置文件（划掉
             StringBuilder sb = new StringBuilder();
             {
@@ -139,21 +131,20 @@ public class MainActivity extends AppCompatActivity {
     }
     public void updateSpinner(){ //更新下拉框
         Spinner sprsms = findViewById(R.id.smsspr);
-        Spinner sprcallphone = findViewById(R.id.telephonespr);
 
         String[] nums = new String[NUMBERS.size()];
-        String[] calls = new String[CALLNUMBERS.size()];
+//        String[] calls = new String[CALLNUMBERS.size()];
 
         NUMBERS.toArray(nums);
-        CALLNUMBERS.toArray(calls);
+//        CALLNUMBERS.toArray(calls);
 
         ArrayAdapter<String> smslist = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, nums);
         smslist.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        ArrayAdapter<String> callphonelist = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, calls);
-        callphonelist.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        ArrayAdapter<String> callphonelist = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, calls);
+//        callphonelist.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         sprsms.setAdapter(smslist);
-        sprcallphone.setAdapter(callphonelist);
+//        sprcallphone.setAdapter(callphonelist);
         save();
     }
 
@@ -199,30 +190,30 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        { //addbtu2 : 添加按钮（关于telephone
-            Button button = findViewById(R.id.addbtu2);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    EditText editText = new EditText(MainActivity.this);
-                    editText.setSingleLine();
-                    builder.setTitle("电话：请输入：");
-                    builder.setIcon(R.drawable.ic_launcher_background);
-                    builder.setView(editText);
-                    builder.setPositiveButton("完成", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.i(TAG, String.format("onClick: %s", editText.getText().toString()));
-                            CALLNUMBERS.add(editText.getText().toString());
-                            updateSpinner();
-                        }
-                    });
-                    builder.setNegativeButton("放弃",null);
-                    builder.show();
-                }
-            });
-        }
+//        { //addbtu2 : 添加按钮（关于telephone
+//            Button button = findViewById(R.id.addbtu2);
+//            button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//                    EditText editText = new EditText(MainActivity.this);
+//                    editText.setSingleLine();
+//                    builder.setTitle("电话：请输入：");
+//                    builder.setIcon(R.drawable.ic_launcher_background);
+//                    builder.setView(editText);
+//                    builder.setPositiveButton("完成", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            Log.i(TAG, String.format("onClick: %s", editText.getText().toString()));
+//                            CALLNUMBERS.add(editText.getText().toString());
+//                            updateSpinner();
+//                        }
+//                    });
+//                    builder.setNegativeButton("放弃",null);
+//                    builder.show();
+//                }
+//            });
+//        }
 
         { //rmbtu1 : 删除按钮（关于sms
             Button button = findViewById(R.id.rmbtu1);
@@ -238,16 +229,32 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        { //rmbtu2 : 删除按钮（关于telephone
-            Button button = findViewById(R.id.rmbtu2);
+//        { //rmbtu2 : 删除按钮（关于telephone
+//            Button button = findViewById(R.id.rmbtu2);
+//            button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    Spinner spinner = findViewById(R.id.telephonespr);
+//                    if(spinner.getSelectedItem() == null) return;
+//                    Log.i(TAG, String.format("onClick: %s", spinner.getSelectedItem().toString()));
+//                    CALLNUMBERS.remove(spinner.getSelectedItem().toString());
+//                    updateSpinner();
+//                }
+//            });
+//        }
+
+        { //Licensebtu : 协议
+            Button button = findViewById(R.id.Licensebtu);
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Spinner spinner = findViewById(R.id.telephonespr);
-                    if(spinner.getSelectedItem() == null) return;
-                    Log.i(TAG, String.format("onClick: %s", spinner.getSelectedItem().toString()));
-                    CALLNUMBERS.remove(spinner.getSelectedItem().toString());
-                    updateSpinner();
+                    AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("License")
+                            .setMessage(getResources().getText(R.string.mit_))
+                            .setIcon(R.drawable.ic_launcher_background)
+                            .setPositiveButton("我知道了",null)
+                            .create();
+                    dialog.show();
                 }
             });
         }
