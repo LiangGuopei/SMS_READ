@@ -57,6 +57,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate: !");
         INSTANCE = this;
+        {
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle("License")
+                    .setMessage(getResources().getText(R.string.mit_))
+                    .setIcon(R.drawable.ic_launcher_background)
+                    .create();
+            dialog.show();
+        }
         { //读取配置文件（划掉
             StringBuilder sb = new StringBuilder();
             {
