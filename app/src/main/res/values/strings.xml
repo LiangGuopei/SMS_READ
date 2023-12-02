@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">小梁科技</string>
+    <string name="add_btu">添加</string>
+    <string name="rm_btu">删除</string>
+</resources>
