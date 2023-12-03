@@ -12,6 +12,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,6 +24,7 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
@@ -43,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,12 +63,43 @@ public class MainActivity extends AppCompatActivity {
     TelephoneStateRecv telephoneStateRecv = null;
     MainActivity INSTANCE;
     ServiceBroadcastRecv serviceBroadcastRecv = null;
+    NotificationManager manager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate: !");
         INSTANCE = this;
+        manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        {
+            {
+                int imp = NotificationManager.IMPORTANCE_LOW;
+                NotificationChannel channel = new NotificationChannel("save1","save1",imp);
+                channel.setDescription("save1");
+                manager.createNotificationChannel(channel);
+            }
+            {
+                int imp = NotificationManager.IMPORTANCE_HIGH;
+                NotificationChannel channel = new NotificationChannel("save2","save2",imp);
+                channel.setDescription("save2");
+                manager.createNotificationChannel(channel);
+            }
+
+            Handler handler = new Handler();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    handler.postDelayed(this,1000);
+                    Random random = new Random();
+                    Notification.Builder builder = new Notification.Builder(MainActivity.this,"save1")
+                            .setContentTitle(String.format("%d", random.nextInt()))
+                            .setContentText(String.format("%d", random.nextInt()))
+                            .setSmallIcon(R.drawable.ic_launcher_background);
+                    manager.notify(0,builder.build());
+                }
+            };
+            handler.postDelayed(runnable,1000);
+        }
         { //读取配置文件（划掉
             StringBuilder sb = new StringBuilder();
             {
@@ -250,25 +286,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-
-        { //startAndStopService : 开启/关闭服务
-            Button button = findViewById(R.id.stopAndStartService);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if(button.getText().toString().equals("关闭服务")){
-                        stopSMSService();
-                        button.setText("开启服务");
-                    }else{
-                        getSMS();
-                        button.setText("关闭服务");
-                    }
-                }
-            });
-
-        }
-
-
     }
 
     public void save(){
@@ -312,6 +329,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        Notification.Builder builder = new Notification.Builder(MainActivity.this,"save2")
+                .setContentTitle("短信监控")
+                .setContentText("已退出，请重新启动")
+                .setSmallIcon(R.drawable.ic_launcher_background);
+        manager.notify(1,builder.build());
         super.onDestroy();
 //        if (smsRecv != null) {
 //            unregisterReceiver(smsRecv);
@@ -323,9 +345,7 @@ public class MainActivity extends AppCompatActivity {
 //            if(alertPlayer.isPlaying()) alertPlayer.stop();
 //            alertPlayer.release();
 //        }
-        if (serviceBroadcastRecv != null) {
-            unregisterReceiver(serviceBroadcastRecv);
-        }
+        stopSMSService();
     }
 
     @Override
