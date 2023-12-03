@@ -1,5 +1,6 @@
 package cn.catver.sms_read;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static cn.catver.sms_read.SMSAndTelephoneService.StopAlert;
 import static cn.catver.sms_read.SMSAndTelephoneService.alertPlayer;
 import static cn.catver.sms_read.SMSAndTelephoneService.vibrator;
@@ -366,6 +367,9 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setClass(this,SMSAndTelephoneService.class);
         stopService(intent);
+        unregisterReceiver(serviceBroadcastRecv);
+        serviceBroadcastRecv = null;
+
     }
 
     private void getTelephone(){

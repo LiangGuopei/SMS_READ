@@ -15,6 +15,7 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.text.TextUtils;
@@ -134,7 +135,6 @@ public class SMSAndTelephoneService extends Service {
                 }
             }
         }
-
 
 
     }
