@@ -12,10 +12,13 @@ public class SMSRecv extends BroadcastReceiver {
 //        Log.i(TAG, "onReceive: a sms message");
         SMSMessage msg = SMSPaster.getSMSMessage(intent);
         Log.i(TAG, String.format("%s send to you: %s", msg.getAddress(),msg.getBody()));
-        for (String s : MainActivity.NUMBERS) {
+        if (SMSAndTelephoneService.NUMBERS == null) {
+            return;
+        }
+        for (String s : SMSAndTelephoneService.NUMBERS) {
             if(msg.Address.contains(s)){
                 Log.i(TAG, "onReceive: GO");
-                MainActivity.PlayAlert();
+                SMSAndTelephoneService.PlayAlert();
                 break;
             }
         }

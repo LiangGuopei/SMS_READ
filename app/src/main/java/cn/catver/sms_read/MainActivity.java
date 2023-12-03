@@ -1,5 +1,9 @@
 package cn.catver.sms_read;
 
+import static cn.catver.sms_read.SMSAndTelephoneService.StopAlert;
+import static cn.catver.sms_read.SMSAndTelephoneService.alertPlayer;
+import static cn.catver.sms_read.SMSAndTelephoneService.vibrator;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,6 +11,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -46,11 +52,11 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = "CatVer-ReadSMS-MainActivity";
     ListView listView = null;
     ArrayList<String> list = new ArrayList<>();
-    public static MediaPlayer alertPlayer;
-    public static Vibrator vibrator;
+
     SMSRecv smsRecv = null;
     TelephoneStateRecv telephoneStateRecv = null;
     MainActivity INSTANCE;
+    ServiceBroadcastRecv serviceBroadcastRecv = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,23 +95,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-
-        {
-            vibrator = ((Vibrator) getSystemService(VIBRATOR_SERVICE));
-            alertPlayer = new MediaPlayer();
-            alertPlayer.setLooping(true);
-            AssetFileDescriptor descriptor = getResources().openRawResourceFd(R.raw.alert3);
-            try {
-                alertPlayer.setDataSource(descriptor.getFileDescriptor(),descriptor.getStartOffset(),descriptor.getLength());
-            } catch (Exception e) {
-//                throw new RuntimeException(e);
-                e.printStackTrace();
-                alertPlayer = null;
-                Toast.makeText(this, "无法初始化声音！", Toast.LENGTH_SHORT).show();
-            }
-
-        }
-
 
         initUI();
         initBtu();
@@ -261,6 +250,23 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        { //startAndStopService : 开启/关闭服务
+            Button button = findViewById(R.id.stopAndStartService);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(button.getText().toString().equals("关闭服务")){
+                        stopSMSService();
+                        button.setText("开启服务");
+                    }else{
+                        getSMS();
+                        button.setText("关闭服务");
+                    }
+                }
+            });
+
+        }
+
 
     }
 
@@ -287,48 +293,37 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        { //发送广播，让服务更新
+            UpdateService();
+        }
     }
 
-    public static void PlayAlert(){
-        if (alertPlayer == null) {
-            return;
-        }
-        if(alertPlayer.isPlaying()) return;
-
-        alertPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                alertPlayer.start();
-            }
-        });
-        alertPlayer.prepareAsync();
-
-        long[] patter = {1000,1000,2000,50};
-        vibrator.vibrate(patter,0);
+    public void UpdateService(){
+        Intent intent = new Intent();
+        intent.setAction("cn.catver.sms_read.update");
+        intent.putExtra("numbers",NUMBERS);
+        intent.putExtra("callnumbers",CALLNUMBERS);
+        sendBroadcast(intent);
+        Log.i(TAG, "UpdateService: A broadcast send!");
     }
 
-    public static void StopAlert(){
-        if (alertPlayer == null) {
-            return;
-        }
-        if(alertPlayer.isPlaying()){
-            alertPlayer.stop();
-        }
-        vibrator.cancel();
-    }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (smsRecv != null) {
-            unregisterReceiver(smsRecv);
-        }
-        if (telephoneStateRecv != null) {
-            unregisterReceiver(telephoneStateRecv);
-        }
-        if(alertPlayer != null){
-            if(alertPlayer.isPlaying()) alertPlayer.stop();
-            alertPlayer.release();
+//        if (smsRecv != null) {
+//            unregisterReceiver(smsRecv);
+//        }
+//        if (telephoneStateRecv != null) {
+//            unregisterReceiver(telephoneStateRecv);
+//        }
+//        if(alertPlayer != null){
+//            if(alertPlayer.isPlaying()) alertPlayer.stop();
+//            alertPlayer.release();
+//        }
+        if (serviceBroadcastRecv != null) {
+            unregisterReceiver(serviceBroadcastRecv);
         }
     }
 
@@ -352,11 +347,25 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     private void getSMS(){
+//        IntentFilter intentFilter = new IntentFilter();
+//        intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
+//        smsRecv = new SMSRecv();
+//        intentFilter.setPriority(Integer.MAX_VALUE);
+//        registerReceiver(smsRecv,intentFilter);
+        serviceBroadcastRecv = new ServiceBroadcastRecv();
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
-        smsRecv = new SMSRecv();
-        intentFilter.setPriority(Integer.MAX_VALUE);
-        registerReceiver(smsRecv,intentFilter);
+        intentFilter.addAction("cn.catver.sms_read.service.msg");
+        registerReceiver(serviceBroadcastRecv,intentFilter);
+
+        Intent intent = new Intent();
+        intent.setClass(this,SMSAndTelephoneService.class);
+        startService(intent);
+    }
+
+    private void stopSMSService(){
+        Intent intent = new Intent();
+        intent.setClass(this,SMSAndTelephoneService.class);
+        stopService(intent);
     }
 
     private void getTelephone(){
@@ -365,5 +374,22 @@ public class MainActivity extends AppCompatActivity {
 //        telephoneStateRecv = new TelephoneStateRecv();
 //        intentFilter.setPriority(Integer.MAX_VALUE);
 //        registerReceiver(telephoneStateRecv,intentFilter);
+    }
+
+    class ServiceBroadcastRecv extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int act = intent.getExtras().getInt("act");
+            Log.i(TAG, "onReceive: Service sending a message, act: "+act);
+            switch (act){
+                case 0: { //成功启动
+                    UpdateService();
+                    break;
+                }
+                default:
+
+            }
+        }
     }
 }
