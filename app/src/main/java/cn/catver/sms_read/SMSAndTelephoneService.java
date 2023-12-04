@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class SMSAndTelephoneService extends Service {
     public static final String TAG = "SMS_READ_SERVICE";
@@ -43,6 +44,8 @@ public class SMSAndTelephoneService extends Service {
     public static MediaPlayer alertPlayer;
     public static Vibrator vibrator;
     public static SMSAndTelephoneService INSTANCE;
+    NotificationManager manager;
+    boolean running;
     public SMSAndTelephoneService() {
     }
 
@@ -54,6 +57,7 @@ public class SMSAndTelephoneService extends Service {
 
     @Override
     public void onCreate() {
+        running = true;
         super.onCreate();
         INSTANCE = this;
         if (NUMBERS == null) {
@@ -76,6 +80,7 @@ public class SMSAndTelephoneService extends Service {
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction("cn.catver.sms_read.update");
             intentFilter.addAction("cn.catver.sms_read.stop.alert");
+            intentFilter.addAction("cn.catver.sms_read.service.stop");
             recvBroadcast = new RecvBroadcast();
             intentFilter.setPriority(Integer.MAX_VALUE);
             registerReceiver(recvBroadcast,intentFilter);
@@ -96,6 +101,7 @@ public class SMSAndTelephoneService extends Service {
             }
 
         }
+        manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         Log.i(TAG, "onCreate: Service init finish");
         if(isRunningForeground(this)){
@@ -103,39 +109,29 @@ public class SMSAndTelephoneService extends Service {
             SendBroadcast(0);
         }else{
             Log.i(TAG, "onCreate: activity dead!");
-            { //读取配置文件（划掉
-                StringBuilder sb = new StringBuilder();
-                {
-                    String temp;
-                    try {
-                        BufferedReader br = new BufferedReader(new InputStreamReader(openFileInput("nums.json")));
-                        while ((temp = br.readLine()) != null){
-                            sb.append(temp);
-                        }
-                    } catch (FileNotFoundException e) {
-                        Toast.makeText(this, "你还没有设置号码！", Toast.LENGTH_SHORT).show();
-                    } catch (IOException e){
-                        e.printStackTrace();
-                    }
-                }
-                try {
-                    NUMBERS.clear();
-                    CALLNUMBERS.clear();
-                    JSONObject jsonObject = new JSONObject(sb.toString());
-                    JSONArray numbers = jsonObject.getJSONArray("numbers");
-                    for (int i = 0; i < numbers.length(); i++) {
-                        NUMBERS.add(numbers.getString(i));
-                    }
-                    JSONArray callnumbers = jsonObject.getJSONArray("callnumbers");
-                    for (int i = 0; i < callnumbers.length(); i++) {
-                        CALLNUMBERS.add(callnumbers.getString(i));
-                    }
-                } catch (JSONException e) {
-                    Toast.makeText(this, "配置文件错误！", Toast.LENGTH_SHORT).show();
-                }
-            }
+            stopSelf();
         }
-
+        {
+            Handler handler = new Handler();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    handler.postDelayed(this,1000);
+                    Random random = new Random();
+                    Notification.Builder builder = new Notification.Builder(SMSAndTelephoneService.this,"save1")
+                            .setContentTitle(String.format("%d", random.nextInt()))
+                            .setContentText(String.format("%d", random.nextInt()))
+                            .setSmallIcon(R.drawable.ic_launcher_background);
+                    manager.notify(0,builder.build());
+                }
+            };
+            handler.postDelayed(runnable,1000);
+        }
+        Notification.Builder builder = new Notification.Builder(SMSAndTelephoneService.this,"save2")
+                .setContentTitle("短信监控")
+                .setContentText("服务启动！")
+                .setSmallIcon(R.drawable.ic_launcher_background);
+        manager.notify(1,builder.build());
 
     }
 
@@ -148,6 +144,9 @@ public class SMSAndTelephoneService extends Service {
 
     @Override
     public void onDestroy() {
+        if(running){
+            SendBroadcast(1);
+        }
         super.onDestroy();
         unregisterReceiver(smsRecv);
         unregisterReceiver(recvBroadcast);
@@ -203,6 +202,9 @@ public class SMSAndTelephoneService extends Service {
                 }
             } else if (intent.equals("cn.catver.sms_read.stop.alert")) {
                 StopAlert();
+            } else if (intent.equals("cn.catver.sms_read.service.stop")) {
+                running = false;
+                stopSelf();
             }
 
         }

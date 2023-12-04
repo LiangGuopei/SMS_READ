@@ -85,20 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 manager.createNotificationChannel(channel);
             }
 
-            Handler handler = new Handler();
-            Runnable runnable = new Runnable() {
-                @Override
-                public void run() {
-                    handler.postDelayed(this,1000);
-                    Random random = new Random();
-                    Notification.Builder builder = new Notification.Builder(MainActivity.this,"save1")
-                            .setContentTitle(String.format("%d", random.nextInt()))
-                            .setContentText(String.format("%d", random.nextInt()))
-                            .setSmallIcon(R.drawable.ic_launcher_background);
-                    manager.notify(0,builder.build());
-                }
-            };
-            handler.postDelayed(runnable,1000);
+
         }
         { //读取配置文件（划掉
             StringBuilder sb = new StringBuilder();
@@ -384,6 +371,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopSMSService(){
+        {
+            Intent intent = new Intent("cn.catver.sms_read.service.stop");
+            sendBroadcast(intent);
+        }
         Intent intent = new Intent();
         intent.setClass(this,SMSAndTelephoneService.class);
         stopService(intent);
@@ -410,6 +401,16 @@ public class MainActivity extends AppCompatActivity {
                 case 0: { //成功启动
                     UpdateService();
                     break;
+                }
+                case 1:{ //意外死亡
+                    unregisterReceiver(serviceBroadcastRecv);
+                    serviceBroadcastRecv = null;
+                    getSMS();
+                    Notification.Builder builder = new Notification.Builder(MainActivity.this,"save2")
+                            .setContentTitle("短信监控")
+                            .setContentText("服务已退出，尝试重新启动")
+                            .setSmallIcon(R.drawable.ic_launcher_background);
+                    manager.notify(1,builder.build());
                 }
                 default:
 
