@@ -59,6 +59,13 @@ public class SMSAndTelephoneService extends Service {
     public void onCreate() {
         running = true;
         super.onCreate();
+
+        {
+            Notification notification = new Notification.Builder(SMSAndTelephoneService.this,"save2")
+                    .build();
+            startForeground(9,notification);
+        }
+
         INSTANCE = this;
         if (NUMBERS == null) {
             NUMBERS = new ArrayList<>();

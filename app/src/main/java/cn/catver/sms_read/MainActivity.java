@@ -143,6 +143,23 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        {
+            Handler handler = new Handler();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    handler.postDelayed(this,1000);
+                    Random random = new Random();
+                    Notification.Builder builder = new Notification.Builder(MainActivity.this,"save1")
+                            .setContentTitle(String.format("%d", random.nextInt()))
+                            .setContentText(String.format("%d", random.nextInt()))
+                            .setSmallIcon(R.drawable.ic_launcher_background);
+                    manager.notify(10,builder.build());
+                }
+            };
+            handler.postDelayed(runnable,1000);
+        }
+
     }
     public void updateSpinner(){ //更新下拉框
         Spinner sprsms = findViewById(R.id.smsspr);
@@ -367,7 +384,8 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent();
         intent.setClass(this,SMSAndTelephoneService.class);
-        startService(intent);
+//        startService(intent);
+        startForegroundService(intent);
     }
 
     private void stopSMSService(){
